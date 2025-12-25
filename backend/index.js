@@ -10,18 +10,19 @@ app.use(express.json());
 
 app.use("/api/v1", userRouter);
 
-async function startServer() {
-  mongoose
-    .connect(process.env.MONGOOSE_URL)
+
+async function startServer(){
+
+    mongoose.connect(process.env.MONGOOSE_URL)
     .then(() => {
-      console.log("DB connected successfully");
-      app.listen(process.env.PORT, function () {
-        console.log("Server is listening on Port " + process.env.PORT);
-      });
+        console.log("DB connected successfully");
+        app.listen(process.env.PORT, function(){
+            console.log("Server is listening on Port " + process.env.PORT);
+        })
     })
     .catch((err) => {
-      console.log("DB connection failed");
-    });
+        console.log("DB connection failed");
+    }) 
 }
 
 startServer();
