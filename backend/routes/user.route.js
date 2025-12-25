@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../db/models/user.model");
 const signupValidationSchema = require("../validations/signup.validation.js");
+const passport = require("passport");
 
 const router = express.Router();
 
@@ -61,8 +62,25 @@ router.post("/signin", async function (req, res) {
   }
 });
 
+//Just for testing Google Auth from backend
+router.get("/testing-google-auth", (req, res) => {
+  res.send('<a href="http://localhost:3000/api/v1/auth/google">login with google</a>');
+})
+
+router.get("/auth/google", 
+  passport.authenticate("google", {scope : ["profile", "email"], prompt: "consent"},)
+);
+
+router.get("/google/callback",
+  passport.authenticate("google", { session: false }),
+  async (req, res) => {
+    const token = await jwt.sign({userId : req.user._id}, process.env.JWT_SECRET);
+    return res.status(200).json({token, user: req.user});
+  }
+)
+
 router.get("/home", (req, res) => {
   res.send("Welcome home!");
-});
+})
 
 module.exports = router;
