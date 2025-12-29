@@ -1,4 +1,5 @@
 const Job = require("../db/models/job.model");
+const generateJobContextInBG = require("../services/generateJobContext.js");
 
 // this is my user-id stored in my DB - hardcoded for testing in dev. - you can use your own
 const DEV_USER_ID = "695277866917522075a7201b";
@@ -11,7 +12,7 @@ const createJob = async (req, res) => {
       user_id: DEV_USER_ID,
       //   user_id: req.userId, // coming from middleware
     });
-
+    generateJobContextInBG(job);
     return res.status(201).json(job);
   } catch (err) {
     return res.status(500).json({

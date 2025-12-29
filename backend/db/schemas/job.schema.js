@@ -74,10 +74,6 @@ const JobSchema = new mongoose.Schema(
     },
 
     salary_offered: Number,
-    ai_context: {
-      type: String,
-      default: ""
-    }
   },
   {
     timestamps: true,
