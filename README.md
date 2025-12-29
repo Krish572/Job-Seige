@@ -9,3 +9,5 @@ GOOGLE_CLIENT_SECRET_KEY =
 
 
 Figma link to access the design of this website : https://www.figma.com/design/nUmH7CV1h0dU15mkOVH2Rc/Job-Seige?node-id=0-1&t=UoY2Sfzh23G6WrgN-1
+
+Database Link : https://erd.dbdesigner.net/designer/schema/1729748187-job-management
