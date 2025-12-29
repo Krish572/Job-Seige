@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const UserAnalytics = require("../models/userAnalytics.model.js");
+const Round = require("../models/round.model.js");
 
 const JobSchema = new mongoose.Schema(
   {
@@ -85,9 +86,13 @@ const JobSchema = new mongoose.Schema(
 
 JobSchema.post("save", async function (job, next){
   try{
+    let change = {total_applied : 1};
+    if(job.current_status === "offer"){
+      change.offers_received = 1;
+    }
     await UserAnalytics.findOneAndUpdate(
       {user_id: job.user_id},
-      {$inc : {total_applied : 1}}
+      {$inc : change}
     );
     next();
   }catch(err){
@@ -95,12 +100,23 @@ JobSchema.post("save", async function (job, next){
   }
 })
 
+JobSchema.pre("findOneAndUpdate", async function(){
+  this._oldJob = await this.model.findOne(this.getQuery());
+})
+
 JobSchema.post("findOneAndUpdate", async function(job, next) {
   try{
-    if(job.current_status === "offer"){
+    if(!job || !this._oldJob) return next();
+    if(this._oldJob.current_status !== "offer" && job.current_status === "offer"){
       await UserAnalytics.findOneAndUpdate(
         {user_id : job.user_id},
         {$inc : {offers_received : 1}}
+      )
+    }
+    if(this._oldJob.current_status === "offer" && job.current_status !== "offer"){
+      await UserAnalytics.findOneAndUpdate(
+        {user_id : job.user_id},
+        {$inc : {offers_received : -1}}
       )
     };
     next();
@@ -111,7 +127,21 @@ JobSchema.post("findOneAndUpdate", async function(job, next) {
 
 JobSchema.post("findOneAndDelete", async function(job, next){
   try{
-    const change = {total_applied : -1};
+    const rounds = await Round.find({job_id: job._id});
+    const roundChange = {
+      total_rounds_attended : -rounds.length,
+      total_rounds_cleared : 0,
+      total_interviews: 0
+    };
+    for(let i = 0; i < rounds.length; i++){
+      if(rounds[i].status === "cleared"){
+        roundChange.total_rounds_cleared -= 1
+      }
+      if(rounds[i].is_interview){
+        roundChange.total_interviews -= 1
+      }
+    }
+    const change = {total_applied : -1, ...roundChange};
     if(job.current_status === 'offer'){
       change.offers_received = -1;
     }

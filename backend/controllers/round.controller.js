@@ -15,8 +15,6 @@ async function createRound(req, res){
     try{
         const {jobId} = req.params;
 
-        console.log(jobId);
-
         const job = await isJobExists(jobId);
         if(!job){
             return res.status(404).json({message: "Job not found"});
@@ -82,13 +80,13 @@ async function updateRound(req, res){
             return res.status(404).json({message: "Job not found"});
         }
         const round = await isRoundExists(roundId);
-        if(!round || round.job_id !== jobId){
+        if(!round || round.job_id.toString() !== jobId){
             return res.status(404).json({message: "Round not found"});
         }
-        await Round.findByIdAndUpdate(roundId, {
+        const updatedRound = await Round.findByIdAndUpdate(roundId, {
             ...req.body
         }, {new : true});
-        return res.status(200).json({round});
+        return res.status(200).json({updatedRound});
     }catch(err){
         return res.status(500).json({message: "Error while updating the Round " + err});
     }
@@ -102,7 +100,7 @@ async function deleteRound(req, res) {
             return res.status(404).json({message: "Job not found"});
         }
         const round = await isRoundExists(roundId);
-        if(!round || round.job_id !== jobId){
+        if(!round || round.job_id.toString() !== jobId){
             return res.status(404).json({message: "Round not found"});
         } 
         await Round.findByIdAndDelete(roundId);
