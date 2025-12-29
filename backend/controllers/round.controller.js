@@ -32,6 +32,7 @@ async function createRound(req, res){
     }
 }
 
+
 async function getRounds(req, res){
     try{
         const {jobId} = req.params;
@@ -39,11 +40,21 @@ async function getRounds(req, res){
         if(!job){
             return res.status(404).json({message: "Job not found"});
         }
-        const rounds = await Round.find({job_id: jobId});
+        let filter = {job_id : jobId};
+        if(req.query.status){
+            filter.status = req.query.status;
+        }
+        if(req.query.name){
+            filter.name = {
+                $regex : req.query.name.split(" ").join(".*"),
+                $options: "i"
+            };
+        }
+        const rounds = await Round.find(filter).sort({scheduled_at: 1});
         return res.status(200).json({rounds});
     }catch(err){
-        return res.status(500).json({message: "Error while reading the routes " + err});
-    } 
+        return res.status(500).json({message: "Error while reading the rounds " + err});
+    }
 }
 
 async function getRound(req, res) {
@@ -101,10 +112,12 @@ async function deleteRound(req, res) {
     }
 }
 
+
+
 module.exports = {
     createRound,
     getRounds,
     getRound,
     updateRound,
-    deleteRound
+    deleteRound,
 };

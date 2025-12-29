@@ -12,7 +12,7 @@ const RoundSchema = new mongoose.Schema({
     scheduled_at : Date,
     status: {
         type: String,
-        enum: ["pending", "completed", "cancelled"],
+        enum: ["pending", "cleared", "cancelled", "rejected"],
         default: "pending"
     },
     feedback_notes: String,
