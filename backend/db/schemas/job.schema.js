@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const UserAnalytics = require("../models/userAnalytics.model.js");
 
 const JobSchema = new mongoose.Schema(
   {
@@ -34,7 +35,7 @@ const JobSchema = new mongoose.Schema(
 
     current_status: {
       type: String,
-      enum: ["applied", "shortlisted", "interview", "offer", "rejected"],
+      enum: ["applied", "shortlisted", "offer", "rejected"],
       default: "applied",
     },
 
@@ -72,10 +73,59 @@ const JobSchema = new mongoose.Schema(
     },
 
     salary_offered: Number,
+    ai_context: {
+      type: String,
+      default: ""
+    }
   },
   {
     timestamps: true,
   }
 );
+
+JobSchema.post("save", async function (job, next){
+  try{
+    await UserAnalytics.findOneAndUpdate(
+      {user_id: job.user_id},
+      {$inc : {total_applied : 1}}
+    );
+    next();
+  }catch(err){
+    next(err);
+  }
+})
+
+JobSchema.post("findOneAndUpdate", async function(job, next) {
+  try{
+    if(job.current_status === "offer"){
+      await UserAnalytics.findOneAndUpdate(
+        {user_id : job.user_id},
+        {$inc : {offers_received : 1}}
+      )
+    };
+    next();
+  }catch(err){
+    next(err);
+  }
+})
+
+JobSchema.post("findOneAndDelete", async function(job, next){
+  try{
+    const change = {total_applied : -1};
+    if(job.current_status === 'offer'){
+      change.offers_received = -1;
+    }
+    await UserAnalytics.findOneAndUpdate(
+      {user_id: job.user_id},
+      {$inc: change}
+    );
+    next();
+  }catch(err){
+    next(err);
+  }
+})
+
+
+
 
 module.exports = JobSchema; // ONLY schema

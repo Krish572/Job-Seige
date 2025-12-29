@@ -12,8 +12,12 @@ const RoundSchema = new mongoose.Schema({
     scheduled_at : Date,
     status: {
         type: String,
-        enum: ["pending", "cleared", "cancelled", "rejected"],
+        enum: ["pending", "cleared", "rejected"],
         default: "pending"
+    },
+    is_interview: {
+        type: Boolean,
+        default: false
     },
     feedback_notes: String,
     location: String,
@@ -22,7 +26,11 @@ const RoundSchema = new mongoose.Schema({
         ref: "Job",
         required : true
     },
-    prep_notes: String
+    prep_notes: String,
+    ai_context: {
+        type : String,
+        default : ""
+    }
 }, {
     timestamps: true
 })

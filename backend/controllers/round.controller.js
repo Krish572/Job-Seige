@@ -88,7 +88,7 @@ async function updateRound(req, res){
         await Round.findByIdAndUpdate(roundId, {
             ...req.body
         }, {new : true});
-        return res.status(200).json({message: "Round updated succesfully"});
+        return res.status(200).json({round});
     }catch(err){
         return res.status(500).json({message: "Error while updating the Round " + err});
     }

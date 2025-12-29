@@ -1,7 +1,7 @@
 const Job = require("../db/models/job.model");
 
 // this is my user-id stored in my DB - hardcoded for testing in dev. - you can use your own
-const DEV_USER_ID = "694d796e68cc322c06e316e9";
+const DEV_USER_ID = "695277866917522075a7201b";
 
 // create job
 const createJob = async (req, res) => {
