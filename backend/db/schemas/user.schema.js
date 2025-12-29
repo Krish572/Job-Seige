@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const UserAnalytics = require("../models/userAnalytics.model.js");
 
 const AdditionalInfoSchema = new mongoose.Schema({
   profileUrl: String,
@@ -33,5 +34,18 @@ const UserSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+UserSchema.post("save", async function(user, next){
+  try{
+    await UserAnalytics.findOneAndUpdate(
+      {user_id : user._id},
+      {$setOnInsert: {user_id: user._id}},
+      {upsert: true}
+    )
+    next();
+  }catch(err){
+    next(err);
+  }
+})
 
 module.exports = UserSchema;
