@@ -29,10 +29,6 @@ const RoundSchema = new mongoose.Schema({
         required : true
     },
     prep_notes: String,
-    ai_context: {
-        type : String,
-        default : ""
-    }
 }, {
     timestamps: true
 })
