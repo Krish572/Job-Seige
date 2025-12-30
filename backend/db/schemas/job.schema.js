@@ -36,7 +36,7 @@ const JobSchema = new mongoose.Schema(
 
     current_status: {
       type: String,
-      enum: ["applied", "shortlisted", "offer", "rejected"],
+      enum: ["applied", "shortlisted", "offer", "rejected", "interview"],
       default: "applied",
     },
 
@@ -80,78 +80,81 @@ const JobSchema = new mongoose.Schema(
   }
 );
 
-JobSchema.post("save", async function (job, next){
-  try{
-    let change = {total_applied : 1};
-    if(job.current_status === "offer"){
+JobSchema.post("save", async function (job, next) {
+  try {
+    let change = { total_applied: 1 };
+    if (job.current_status === "offer") {
       change.offers_received = 1;
     }
     await UserAnalytics.findOneAndUpdate(
-      {user_id: job.user_id},
-      {$inc : change}
+      { user_id: job.user_id },
+      { $inc: change }
     );
     next();
-  }catch(err){
+  } catch (err) {
     next(err);
   }
-})
+});
 
-JobSchema.pre("findOneAndUpdate", async function(){
+JobSchema.pre("findOneAndUpdate", async function () {
   this._oldJob = await this.model.findOne(this.getQuery());
-})
+});
 
-JobSchema.post("findOneAndUpdate", async function(job, next) {
-  try{
-    if(!job || !this._oldJob) return next();
-    if(this._oldJob.current_status !== "offer" && job.current_status === "offer"){
+JobSchema.post("findOneAndUpdate", async function (job, next) {
+  try {
+    if (!job || !this._oldJob) return next();
+    if (
+      this._oldJob.current_status !== "offer" &&
+      job.current_status === "offer"
+    ) {
       await UserAnalytics.findOneAndUpdate(
-        {user_id : job.user_id},
-        {$inc : {offers_received : 1}}
-      )
+        { user_id: job.user_id },
+        { $inc: { offers_received: 1 } }
+      );
     }
-    if(this._oldJob.current_status === "offer" && job.current_status !== "offer"){
+    if (
+      this._oldJob.current_status === "offer" &&
+      job.current_status !== "offer"
+    ) {
       await UserAnalytics.findOneAndUpdate(
-        {user_id : job.user_id},
-        {$inc : {offers_received : -1}}
-      )
-    };
+        { user_id: job.user_id },
+        { $inc: { offers_received: -1 } }
+      );
+    }
     next();
-  }catch(err){
+  } catch (err) {
     next(err);
   }
-})
+});
 
-JobSchema.post("findOneAndDelete", async function(job, next){
-  try{
-    const rounds = await Round.find({job_id: job._id});
+JobSchema.post("findOneAndDelete", async function (job, next) {
+  try {
+    const rounds = await Round.find({ job_id: job._id });
     const roundChange = {
-      total_rounds_attended : -rounds.length,
-      total_rounds_cleared : 0,
-      total_interviews: 0
+      total_rounds_attended: -rounds.length,
+      total_rounds_cleared: 0,
+      total_interviews: 0,
     };
-    for(let i = 0; i < rounds.length; i++){
-      if(rounds[i].status === "cleared"){
-        roundChange.total_rounds_cleared -= 1
+    for (let i = 0; i < rounds.length; i++) {
+      if (rounds[i].status === "cleared") {
+        roundChange.total_rounds_cleared -= 1;
       }
-      if(rounds[i].is_interview){
-        roundChange.total_interviews -= 1
+      if (rounds[i].is_interview) {
+        roundChange.total_interviews -= 1;
       }
     }
-    const change = {total_applied : -1, ...roundChange};
-    if(job.current_status === 'offer'){
+    const change = { total_applied: -1, ...roundChange };
+    if (job.current_status === "offer") {
       change.offers_received = -1;
     }
     await UserAnalytics.findOneAndUpdate(
-      {user_id: job.user_id},
-      {$inc: change}
+      { user_id: job.user_id },
+      { $inc: change }
     );
     next();
-  }catch(err){
+  } catch (err) {
     next(err);
   }
-})
-
-
-
+});
 
 module.exports = JobSchema; // ONLY schema
