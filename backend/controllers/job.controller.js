@@ -2,14 +2,14 @@ const Job = require("../db/models/job.model");
 const generateJobContextInBG = require("../services/generateJobContext.js");
 
 // this is my user-id stored in my DB - hardcoded for testing in dev. - you can use your own
-const DEV_USER_ID = "695277866917522075a7201b";
+const DEV_USER_ID = process.env.DEV_USER_ID;
 
 // create job
 const createJob = async (req, res) => {
   try {
     const job = await Job.create({
       ...req.body,
-      user_id: DEV_USER_ID,
+      user_id: new mongoose.Types.ObjectId(DEV_USER_ID),
       //   user_id: req.userId, // coming from middleware
     });
     generateJobContextInBG(job);
@@ -27,7 +27,13 @@ const getJobs = async (req, res) => {
     // const jobs = await Job.find({ user_id: DEV_USER_ID });
     // new mongoose.Types.ObjectId(DEV_USER_ID),
 
-    const query = { user_id: DEV_USER_ID };
+    // const query = { user_id: DEV_USER_ID };
+    const userObjectId = new mongoose.Types.ObjectId(DEV_USER_ID);
+
+    const query = {
+      // user_id: new mongoose.Types.ObjectId(DEV_USER_ID),
+      user_id: userObjectId,
+    };
 
     //1. filter by status
     if (req.query.status) {
@@ -46,17 +52,21 @@ const getJobs = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
+    // const result = await Job.find();
+    // console.log(res);
+    // console.log(query);
     // final db query
     const jobs = await Job.find(query)
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
+    // console.log(jobs);
+
     return res.status(200).json(jobs);
   } catch (err) {
     return res.status(500).json({
-      message: "Failed to fetch jobs",
+      message: "Failed to fetch jobs" + err + "",
     });
   }
 };
@@ -64,11 +74,10 @@ const getJobs = async (req, res) => {
 // get job by id
 const getJobById = async (req, res) => {
   try {
-    const job = await Job.findById({
+    const job = await Job.findOne({
       _id: req.params.id,
-      //   user_id: DEV_USER_ID, // temp user
+      user_id: new mongoose.Types.ObjectId(DEV_USER_ID),
     });
-    // console.log(job);
 
     if (!job) {
       res.status(404).json({ message: "Job not found" });
@@ -123,9 +132,11 @@ const getJobStats = async (req, res) => {
 // get jobs that are interview upcoming
 const getUpcomingInterviews = async (req, res) => {
   const today = new Date();
+  const userObjectId = new mongoose.Types.ObjectId(DEV_USER_ID);
+
   try {
     const jobs = await Job.find({
-      user_id: DEV_USER_ID,
+      user_id: userObjectId,
       interview_date: { $gte: today },
     }).sort({ interview_date: 1 });
 
@@ -148,7 +159,7 @@ const updateJob = async (req, res) => {
     const job = await Job.findByIdAndUpdate(
       {
         _id: req.params.id,
-        user_id: DEV_USER_ID, // temp user
+        user_id: new mongoose.Types.ObjectId(DEV_USER_ID),
       },
       req.body,
       { new: true }
@@ -176,7 +187,7 @@ const updateJobStatus = async (req, res) => {
     }
 
     const job = await Job.findByIdAndUpdate(
-      { _id: req.params.id, user_id: DEV_USER_ID },
+      { _id: req.params.id, user_id: new mongoose.Types.ObjectId(DEV_USER_ID) },
       { current_status: status },
       { new: true }
     );
@@ -200,7 +211,7 @@ const updateJobNotes = async (req, res) => {
     }
 
     const job = await Job.findByIdAndUpdate(
-      { _id: req.params.id, user_id: DEV_USER_ID },
+      { _id: req.params.id, user_id: new mongoose.Types.ObjectId(DEV_USER_ID) },
       { notes },
       { new: true }
     );
@@ -220,7 +231,7 @@ const deleteJob = async (req, res) => {
   try {
     const job = await Job.findByIdAndDelete({
       _id: req.params.id,
-      user_id: DEV_USER_ID,
+      user_id: new mongoose.Types.ObjectId(DEV_USER_ID),
     });
 
     if (!job) {
