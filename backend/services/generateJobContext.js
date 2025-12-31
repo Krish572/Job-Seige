@@ -15,7 +15,6 @@ async function generateJobContextInBG(job){
             Return ONLY a well-structured plain text roadmap.
             `;
         const aiContext = await generateAiContext(prompt);
-        console.log(aiContext);
         await Job.findByIdAndUpdate(job._id, {ai_context : aiContext});
     }catch(err){
         console.error("AI generation failed " +  err);

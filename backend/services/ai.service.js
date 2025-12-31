@@ -38,6 +38,7 @@ async function generateAiContext(prompt) {
 
     return aiText;
   } catch (error) {
+    console.log(error);
     console.error("[AI ERROR]", error.message);
 
     // Safe fallback (VERY important)

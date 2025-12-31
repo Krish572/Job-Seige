@@ -73,6 +73,11 @@ const JobSchema = new mongoose.Schema(
       enum: ["full-time", "part-time", "internship", "contract"],
     },
 
+    ai_context: {
+      type: String,
+      default: ""
+    },
+
     salary_offered: Number,
   },
   {
