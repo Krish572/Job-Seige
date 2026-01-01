@@ -9,6 +9,6 @@ if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <App/>
   </StrictMode>,
 )
