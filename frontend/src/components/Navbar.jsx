@@ -1,9 +1,12 @@
 import { Menu, Sun, Moon } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 
-export function Navbar({ setShowSignin }) {
+export function Navbar() {
   const [menu, setMenu] = useState(false);
   const [darkmode, setDarkmode] = useState(false);
+
+  const {setShowSignin} = useContext(AuthContext);
 
   function handleDarkmode() {
     setDarkmode((mode) => !mode);
@@ -36,7 +39,7 @@ export function Navbar({ setShowSignin }) {
           <span className="cursor-pointer">
             <a href="#features">Features</a>
           </span>
-          <span onClick={() => setShowSignin(true)} className="cursor-pointer">
+          <span className="cursor-pointer" onClick={() => setShowSignin(true)}>
             Sign in
           </span>
         </div>
