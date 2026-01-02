@@ -30,7 +30,7 @@ export function Navbar() {
             onClick={() => setMenu((state) => !state)}
           />
         </div>
-        <div className="hidden sm:flex text-lg gap-10">
+        <div className="hidden sm:flex gap-10">
           {darkmode === true ? (
             <Moon onClick={handleDarkmode} className="cursor-pointer" />
           ) : (
@@ -66,7 +66,10 @@ export function Navbar() {
         <div className="flex flex-col gap-4 items-center">
           {darkmode === true ? (
             <div
-              onClick={handleDarkmode}
+              onClick={() => {
+                setMenu((x) => !x);
+                handleDarkmode();
+              }}
               className="py-2 flex gap-2 cursor-pointer border-b border-[#F0F3FF] 
                         dark:border-[#16171A]"
             >
@@ -75,7 +78,10 @@ export function Navbar() {
             </div>
           ) : (
             <div
-              onClick={handleDarkmode}
+              onClick={() => {
+                setMenu((x) => !x);
+                handleDarkmode();
+              }}
               className="py-2 flex gap-2 cursor-pointer border-b border-[#F0F3FF] 
                         dark:border-[#16171A]"
             >
