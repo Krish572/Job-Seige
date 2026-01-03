@@ -9,7 +9,7 @@ export function Signin(){
 
     return (
         <div className="fixed inset-0 z-50 flex p-5 items-center justify-center bg-black/50">
-                <div className="bg-[#F0F3FF] dark:bg-[#16171A] rounded-lg px-6 py-8 sm:p-8 w-full max-w-md relative">
+                <div className="bg-[#F0F3FF] dark:bg-[#16171A] rounded-lg px-5 py-8 sm:p-8 w-full max-w-md relative">
                     <button
                     onClick={() => {setShowSignin(false); setIsnew(false)}}
                     className="cursor-pointer absolute top-4 right-4 hover:text-gray-500"
@@ -39,7 +39,7 @@ export function Signin(){
 
                         <span className="flex flex-col w-full gap-2">
                             Password
-                            <input className="w-full py-3 sm:py-4 bg-white px-4 shadow-sm dark:bg-black rounded-md outline-none"/>
+                            <input className="w-full py-3 sm:py-4 bg-white px-4 shadow-sm dark:bg-black rounded-md outline-none" type="password"/>
                         </span>
 
                         <div className="flex flex-col w-full mt-2">
