@@ -1,9 +1,12 @@
 import { Menu, Sun, Moon } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 
-export function Navbar({ setShowSignin }) {
+export function Navbar() {
   const [menu, setMenu] = useState(false);
   const [darkmode, setDarkmode] = useState(false);
+
+  const {setShowSignin} = useContext(AuthContext);
 
   function handleDarkmode() {
     setDarkmode((mode) => !mode);
@@ -27,7 +30,7 @@ export function Navbar({ setShowSignin }) {
             onClick={() => setMenu((state) => !state)}
           />
         </div>
-        <div className="hidden sm:flex text-lg gap-10">
+        <div className="hidden sm:flex gap-10">
           {darkmode === true ? (
             <Moon onClick={handleDarkmode} className="cursor-pointer" />
           ) : (
@@ -36,7 +39,7 @@ export function Navbar({ setShowSignin }) {
           <span className="cursor-pointer">
             <a href="#features">Features</a>
           </span>
-          <span onClick={() => setShowSignin(true)} className="cursor-pointer">
+          <span className="cursor-pointer" onClick={() => setShowSignin(true)}>
             Sign in
           </span>
         </div>
@@ -63,7 +66,10 @@ export function Navbar({ setShowSignin }) {
         <div className="flex flex-col gap-4 items-center">
           {darkmode === true ? (
             <div
-              onClick={handleDarkmode}
+              onClick={() => {
+                setMenu((x) => !x);
+                handleDarkmode();
+              }}
               className="py-2 flex gap-2 cursor-pointer border-b border-[#F0F3FF] 
                         dark:border-[#16171A]"
             >
@@ -72,7 +78,10 @@ export function Navbar({ setShowSignin }) {
             </div>
           ) : (
             <div
-              onClick={handleDarkmode}
+              onClick={() => {
+                setMenu((x) => !x);
+                handleDarkmode();
+              }}
               className="py-2 flex gap-2 cursor-pointer border-b border-[#F0F3FF] 
                         dark:border-[#16171A]"
             >

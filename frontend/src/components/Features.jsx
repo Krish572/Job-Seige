@@ -9,7 +9,7 @@ export function Features() {
           <span className="text-3xl font-semibold">
             Everything you need to succeed
           </span>
-          <span className="text-[#5E5E5E]">
+          <span className="text-[#5E5E5E] text-lg">
             Stop using spreadsheets. Upgrade to a purpose-built tool designed
             for the modern job hunt.
           </span>
