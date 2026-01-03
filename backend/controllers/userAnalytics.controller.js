@@ -41,6 +41,8 @@ async function getUserAnalytics(req, res) {
       total_rounds_attended: analytics.total_rounds_attended,
       total_rounds_cleared: analytics.total_rounds_cleared,
       success_ratio,
+      strengths: analytics.strengths,
+      weaknesses: analytics.weaknesses,
     });
   } catch (err) {
     return res.status(500).json({
@@ -120,6 +122,21 @@ async function generateAIAnalysis(req, res) {
       });
     }
 
+    const { strengths, weaknesses } = await computePerformanceInsights(
+      analytics.user_id
+    );
+
+    await UserAnalytics.findOneAndUpdate(
+      { user_id: analytics.user_id },
+      { $set: { strengths, weaknesses } }
+    );
+
+    return res.status(200).json({
+      message: "Computed insights (AI disabled)",
+      strengths,
+      weaknesses,
+    });
+
     // Prevent unnecessary AI calls
     if (!analytics.ai_context.is_stale) {
       return res.status(200).json({
@@ -134,11 +151,6 @@ async function generateAIAnalysis(req, res) {
         status: "processing",
       });
     }
-
-    // Calling to get the updated strengths and weekness
-    const { strengths, weaknesses } = await computePerformanceInsights(
-      analytics.user_id
-    );
 
     // Trigger AI (async, background)
     generateAnalyticsContext({ analytics });
