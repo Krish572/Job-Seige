@@ -1,89 +1,115 @@
 const UserAnalytics = require("../db/models/userAnalytics.model");
-const {generateAiContext} = require("./ai.service.js");
+const { generateAiContext } = require("./ai.service.js");
 
-async function generateAnalyticsContext(analytics){
-    try{
-        const userId = analytics.user_id;
-        if(analytics.aiContext?.status === "processing"){
-            return;
-        }
-        await UserAnalytics.findOneAndUpdate(
-            { user_id: userId },
-            {
-                $set: {
-                ai_context: {
-                    context: analytics.ai_context?.context || "",
-                    status: "processing",
-                    last_ai_snapshot:
-                    analytics.ai_context?.last_ai_snapshot || {
-                        total_applied: 0,
-                        offers_received: 0,
-                        total_interviews: 0,
-                        total_rounds_attended: 0,
-                        total_rounds_cleared: 0
-                    }
-                }
-                }
-            },
-            { upsert: true }
-        );
-        const successRatio =
-        analytics.total_applied > 0
-            ? Number(
-                ((analytics.offers_received / analytics.total_applied) * 100).toFixed(2)
-            )
-            : 0;
-        const prompt = `
-            You are a career analytics AI and job search coach.
+async function generateAnalyticsContext({
+  analytics,
+  strengths = [],
+  weaknesses = [],
+}) {
+  const userId = analytics.user_id;
 
-            Analyze the following user analytics data and generate clear, actionable insights.
-
-            User Analytics:
-            - Total jobs applied: ${analytics.total_applied}
-            - Offers received: ${analytics.offers_received}
-            - Success ratio (%): ${successRatio}
-            - Total interviews attended: ${analytics.total_interviews}
-            - Total interview rounds attended: ${analytics.total_rounds_attended}
-            - Total rounds cleared: ${analytics.total_rounds_cleared}
-
-            Your task:
-            1. Summarize the users overall job search performance.
-            2. Identify strengths and weaknesses in their application and interview process.
-            3. Explain what the success ratio indicates in simple terms.
-            4. Suggest 3-5 concrete, actionable improvements the user can apply immediately.
-            5. Provide a short motivational insight based on the data.
-
-            Rules:
-            - Be concise and structured.
-            - Avoid generic advice.
-            - Use a supportive, professional tone.
-            - Do NOT repeat the raw numbers unless necessary.
-            - Output plain text only.
-        `
-        const aiContext = await generateAiContext(prompt);
-        await UserAnalytics.findOneAndUpdate(
-            {user_id: userId},
-            {
-                $set: {
-                    "ai_context.context": aiContext,
-                    "ai_context.status": "ready",
-                    "ai_context.last_ai_snapshot": {
-                        total_applied: analytics.total_applied,
-                        offers_received: analytics.offers_received,
-                        total_interviews: analytics.total_interviews,
-                        total_rounds_attended: analytics.total_rounds_attended,
-                        total_rounds_cleared: analytics.total_rounds_cleared
-                    }
-                }
-            }
-        )
-    }catch(err){
-        console.log("AI generation failed " + err);
-        await UserAnalytics.updateOne(
-                { user_id: analytics.user_id },
-                { $set: { "ai_context.status": "failed" } }
-            );
+  try {
+    // ✅ Guard 1: Do not regenerate if data is not stale
+    if (!analytics.ai_context?.is_stale) {
+      return;
     }
+
+    // ✅ Guard 2: Avoid parallel AI calls
+    if (analytics.ai_context.status === "processing") {
+      return;
+    }
+
+    // ✅ Mark AI as processing
+    await UserAnalytics.updateOne(
+      { user_id: userId },
+      {
+        $set: {
+          "ai_context.status": "processing",
+        },
+      }
+    );
+
+    // ------------------ BUILD PROMPT (SIGNAL-BASED) ------------------
+
+    const strengthsText =
+      strengths.length > 0
+        ? strengths
+            .map(
+              (s) =>
+                `- ${s.round_type}: ${s.pass_rate}% success (${s.confidence} confidence)`
+            )
+            .join("\n")
+        : "No strong patterns detected yet.";
+
+    const weaknessesText =
+      weaknesses.length > 0
+        ? weaknesses
+            .map(
+              (w) =>
+                `- ${w.round_type}: ${w.fail_count} failures (${w.confidence} confidence)`
+            )
+            .join("\n")
+        : "No major weaknesses detected yet.";
+
+    const prompt = `
+You are a career analytics AI and job search coach.
+
+Analyze the user's interview performance patterns and provide actionable insights.
+
+Strengths:
+${strengthsText}
+
+Weaknesses:
+${weaknessesText}
+
+Your task:
+1. Summarize the user's interview performance clearly.
+2. Explain strengths and weaknesses based on patterns.
+3. Suggest 3-5 focused improvements.
+4. Give a short motivational insight.
+
+Rules:
+- Be concise and specific.
+- Avoid generic advice.
+- Base conclusions only on provided patterns.
+- Output plain text only.
+`;
+
+    // ------------------ CALL AI (EXPENSIVE STEP) ------------------
+
+    console.log(`[AI] Generating insights for user ${userId}`);
+
+    const aiContext = await generateAiContext(prompt);
+
+    // ------------------ SAVE RESULT & CLEAR STALE FLAG ------------------
+
+    await UserAnalytics.updateOne(
+      { user_id: userId },
+      {
+        $set: {
+          "ai_context.context": aiContext,
+          "ai_context.status": "ready",
+          "ai_context.is_stale": false,
+          "ai_context.last_ai_snapshot": {
+            pattern_hash:
+              analytics.ai_context.last_ai_snapshot?.pattern_hash || "",
+            generated_at: new Date(),
+          },
+        },
+      }
+    );
+  } catch (err) {
+    console.error("AI generation failed:", err.message);
+
+    await UserAnalytics.updateOne(
+      { user_id: userId },
+      {
+        $set: {
+          "ai_context.status": "failed",
+        },
+      }
+    );
+  }
 }
 
-module.exports = {generateAnalyticsContext};
+module.exports = { generateAnalyticsContext };

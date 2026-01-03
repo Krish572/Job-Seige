@@ -1,23 +1,24 @@
 import { Menu, Sun, Moon } from "lucide-react";
-import { useContext, useState } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../context/AuthContext.jsx";
 
 export function Navbar() {
   const [menu, setMenu] = useState(false);
   const [darkmode, setDarkmode] = useState(false);
 
-  const {setShowSignin} = useContext(AuthContext);
+  const { setShowSignin } = useContext(AuthContext);
 
   function handleDarkmode() {
     setDarkmode((mode) => !mode);
     document.documentElement.classList.toggle("dark");
   }
 
-  useState(() => {
+  useEffect(() => {
     if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
       setDarkmode((mode) => !mode);
     }
   }, []);
+
   return (
     <div className="sticky top-0 z-50 dark:bg-black bg-white border-b border-[#F0F3FF] dark:border-[#16171A]">
       <div className="w-full h-20 flex justify-between items-center px-5 md:px-12 md:py-5">
