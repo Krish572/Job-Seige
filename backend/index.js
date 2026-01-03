@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
 const mongoose = require("mongoose");
+const cors = require("cors");
 const userRouter = require("./routes/user.route.js");
 const jobRouter = require("./routes/job.route.js");
 const passport = require("passport");
@@ -15,6 +16,7 @@ const app = express();
 app.use(express.json());
 require("./config/passport.js");
 app.use(passport.initialize());
+app.use(cors({origin: "http://localhost:5173"}));
 
 app.use("/api/v1", userRouter);
 app.use("/api/v1/jobs", jobRouter);
