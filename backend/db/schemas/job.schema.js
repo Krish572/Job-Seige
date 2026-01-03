@@ -75,7 +75,7 @@ const JobSchema = new mongoose.Schema(
 
     ai_context: {
       type: String,
-      default: ""
+      default: "",
     },
 
     salary_offered: Number,
@@ -87,14 +87,17 @@ const JobSchema = new mongoose.Schema(
 
 JobSchema.post("save", async function (job, next) {
   try {
+    console.log("am entering into job analytics... hook in job schema");
     let change = { total_applied: 1 };
     if (job.current_status === "offer") {
       change.offers_received = 1;
     }
     await UserAnalytics.findOneAndUpdate(
       { user_id: job.user_id },
-      { $inc: change }
+      { $inc: change },
+      { upsert: true, new: true }
     );
+
     next();
   } catch (err) {
     next(err);
@@ -114,7 +117,8 @@ JobSchema.post("findOneAndUpdate", async function (job, next) {
     ) {
       await UserAnalytics.findOneAndUpdate(
         { user_id: job.user_id },
-        { $inc: { offers_received: 1 } }
+        { $inc: { offers_received: 1 } },
+        { upsert: true, new: true }
       );
     }
     if (
@@ -123,7 +127,8 @@ JobSchema.post("findOneAndUpdate", async function (job, next) {
     ) {
       await UserAnalytics.findOneAndUpdate(
         { user_id: job.user_id },
-        { $inc: { offers_received: -1 } }
+        { $inc: { offers_received: -1 } },
+        { upsert: true, new: true }
       );
     }
     next();
@@ -154,7 +159,8 @@ JobSchema.post("findOneAndDelete", async function (job, next) {
     }
     await UserAnalytics.findOneAndUpdate(
       { user_id: job.user_id },
-      { $inc: change }
+      { $inc: change },
+      { upsert: true, new: true }
     );
     next();
   } catch (err) {
