@@ -2,26 +2,20 @@ const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
 const mongoose = require("mongoose");
+const cors = require("cors");
 const userRouter = require("./routes/user.route.js");
 const jobRouter = require("./routes/job.route.js");
 const passport = require("passport");
 const roundRouter = require("./routes/round.route.js");
 const analyticsRouter = require("./routes/userAnalytics.route.js");
 const { generateAiContext } = require("./services/ai.service.js");
-const cors = require("cors");
 
 const app = express();
 
 app.use(express.json());
 require("./config/passport.js");
 app.use(passport.initialize());
-
-app.use(
-  cors({
-    orgin: "http://localhost:5173",
-    credentials: true,
-  })
-);
+app.use(cors({origin: "http://localhost:5173"}));
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/jobs", jobRouter);
