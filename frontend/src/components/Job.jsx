@@ -13,7 +13,7 @@ export function Job({title, company, job_type, location, status}){
                 <span className="text-base text-green-500">{status}</span>
                 <div className="flex gap-5">
                     <span className="cursor-pointer text-base text-[#006ECF] hover:text-[#007CEF] active:text-[#00539C]">Edit</span>
-                    <span className="cursor-pointer text-base text-[#006ECF] hover:text-[#007CEF] active:text-[#00539C]">Delete</span>
+                    <span className="cursor-pointer text-base text-red-500 hover:text-red-700 active:text-red-500">Delete</span>
                 </div>
             </div>
         </div>
