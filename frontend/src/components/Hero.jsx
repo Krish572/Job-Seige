@@ -1,7 +1,5 @@
 import { useContext } from "react";
-import { useContext } from "react";
 import heroimg from "../assets/heroimg.jpg";
-import { AuthContext } from "../context/AuthContext";
 import { AuthContext } from "../context/AuthContext";
 
 export function Hero() {
