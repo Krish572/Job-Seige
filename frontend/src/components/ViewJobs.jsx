@@ -3,10 +3,17 @@ import { Button } from "./Button";
 import { Job } from "./Job";
 import { SelectField } from "./SelectField";
 import { useFetch } from "../hooks/useFetch";
+import { useNavigate } from "react-router-dom";
 
 
 
 export function ViewJobs(){
+
+    const navigate = useNavigate();
+
+    function handleOnClick(id){
+        navigate("/jobs/" + id);
+    }
 
     const [filter, setFilter] = useState({
         "title": "",
@@ -61,7 +68,7 @@ export function ViewJobs(){
                 {
                     
                     loading ? <span>Loading</span> : jobs.length > 0 && jobs.map((job) => (
-                        <Job key={job._id} title={job.title} company={job.company} job_type={job.job_type} location={job.location} status={job.current_status}/>
+                        <Job key={job._id} id={job._id} title={job.title} company={job.company} job_type={job.job_type} location={job.location} status={job.current_status} handleOnClick={handleOnClick}/>
                     ))
                 }
                 <div className="flex items-center justify-center col-span-12 md:col-span-4">
