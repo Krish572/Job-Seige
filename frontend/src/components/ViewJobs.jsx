@@ -4,6 +4,7 @@ import { Job } from "./Job";
 import { SelectField } from "./SelectField";
 import { useFetch } from "../hooks/useFetch";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
 
@@ -21,11 +22,13 @@ export function ViewJobs(){
         "job_type": "full-time"
     })
 
+    const [refresh, setRefresh] = useState(false);
+
     const baseUrl = "http://localhost:3000/api/v1/jobs/";
 
     const [url, setUrl] = useState(baseUrl);
 
-    const {loading, jobs} = useFetch(url);
+    const {loading, jobs} = useFetch(`${url}?refresh=${refresh}`);
 
     function handleChange(e){
         const {name, value} = e.target;
@@ -33,6 +36,23 @@ export function ViewJobs(){
             ...prev,
             [name]: value
         }))
+    }
+
+    function handleEdit(id){
+        navigate("/edit-job/" + id);
+    }
+
+    function handleAdd(){
+        navigate("/add-job");
+    }
+
+    async function handleDelete(id){
+        try{
+            await axios.delete("http://localhost:3000/api/v1/jobs/" + id);
+            setRefresh((x) => !x);
+        }catch(err){
+            console.log(err);
+        }
     }
 
     useEffect(() => {
@@ -68,11 +88,11 @@ export function ViewJobs(){
                 {
                     
                     loading ? <span>Loading</span> : jobs.length > 0 && jobs.map((job) => (
-                        <Job key={job._id} id={job._id} title={job.title} company={job.company} job_type={job.job_type} location={job.location} status={job.current_status} handleOnClick={handleOnClick}/>
+                        <Job key={job._id} id={job._id} title={job.title} company={job.company} job_type={job.job_type} location={job.location} status={job.current_status} handleOnClick={handleOnClick} handleEdit={handleEdit} handleDelete={handleDelete}/>
                     ))
                 }
                 <div className="flex items-center justify-center col-span-12 md:col-span-4">
-                    <Button title="+ Add New Job"/>
+                    <Button title="+ Add New Job" handleOnClick={handleAdd}/>
                 </div>   
             </div>
         </div>

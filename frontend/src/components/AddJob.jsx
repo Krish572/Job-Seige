@@ -1,17 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { InputField } from "./InputField";
 import { SelectField } from "./SelectField";
 import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
 
 
 export function AddJob() {
+
+  const navigate = useNavigate();
+  
+
+  const {id} = useParams();
+  let editMode = false;
+
+  if(id){
+    editMode = true;
+  }
+
+
   const [touched, setTouched] = useState({
     title: false,
     company: false,
     job_type: false,
   });
 
-  const [job, setJob] = useState({
+  const emptyJob = {
     title: "",
     company: "",
     location: "",
@@ -28,7 +41,30 @@ export function AddJob() {
     job_type: "",
     ai_context: "",
     salary_offered: "",
-  });
+  };
+
+  const [job, setJob] = useState(emptyJob);
+
+  
+
+  useEffect(() => {
+    if(!editMode){
+      return;
+    }
+    async function getJob(){
+      try{
+          const response = await axios.get("http://localhost:3000/api/v1/jobs/" + id);
+          setJob((prev) => ({
+            ...prev,
+            ...response.data
+          }))
+      }catch(err){
+          console.log(err);
+      }
+    }
+    getJob();
+
+  }, [id])
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -48,11 +84,19 @@ export function AddJob() {
 
   async function handleSubmit() {
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/v1/jobs",
-        job
-      );
-      console.log(response);
+      if(editMode){
+        const response = await axios.patch(
+          "http://localhost:3000/api/v1/jobs/" + id,
+          job
+        );
+        console.log(response.data);
+      }else{
+        await axios.post(
+          "http://localhost:3000/api/v1/jobs",
+          job
+        );
+      }
+      navigate("/jobs");
     } catch (err) {
       console.log(err);
     }
@@ -232,7 +276,7 @@ export function AddJob() {
           onClick={handleSubmit}
           className="cursor-pointer shadow-sm dark:shadow-black/40 gap-4 py-3 sm:py-4 bg-[#006ECF] px-4 text-white hover:bg-[#007CEF] active:bg-[#00539C] rounded-md"
         >
-          Save Job
+          {editMode ? "Edit Job" : "Save Job"}
         </button>
       </div>
     </div>
